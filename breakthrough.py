@@ -181,7 +181,7 @@ with turtle_canvas(600,600) as t:
 
     # Types are "AI" or "Random"
     white_type: str = "AI"
-    black_type: str = "AI"
+    black_type: str = "Human"
 
     # Utility & Drawing Functions
     square_to_coords = lambda square: (square[1] * square_size + square_size // 2, board_size - square[0] * square_size - square_size // 2)
@@ -261,8 +261,20 @@ with turtle_canvas(600,600) as t:
         pause(150)
         setxy(x_dst, y_dst)
         blot(20)
-    
 
+    def human_input(board: utils.Board) -> utils.Move:
+        detect("click", 0)
+        click_x, click_y = get_clickx(), get_clicky()
+        src = (6 - click_y // square_size, click_x // square_size - 1)
+        detect("click", 0)
+        click_x, click_y = get_clickx(), get_clicky()
+        dst = (6 - click_y // square_size, click_x // square_size - 1)
+        print("Human move: ", src, " -> ", dst)
+        if utils.is_valid_move(board, src, dst):
+            return src, dst
+        else:
+            print("Invalid move")
+            return human_input(board)
     # Main Game Loop
     def play():
         print("Starting game:")
@@ -279,10 +291,13 @@ with turtle_canvas(600,600) as t:
         while not utils.is_game_over(board):
             # Make a move based on the type of player
             if play_colour == "B":
-                if black_type == "Random":
-                    src, dst = utils.generate_rand_move(board)
-                else:
+                if black_type == "AI":
                     src, dst = utils.negamax_alpha_beta(board, 0, eval_depth, -utils.INF, utils.INF)[1]
+                elif black_type == "Human":
+                    src, dst = human_input(board)
+                else:
+                    # Random player
+                    src, dst = utils.generate_rand_move(board)         
                 print("Black's move: ", src , " -> ", dst, "\n evaluation score: ", utils.evaluate(board))
                 # Change board state and play colour
                 board = utils.state_change(board, src, dst)
